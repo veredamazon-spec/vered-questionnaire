@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>רגע נסיכותי עם ורד</title>
+<style>
+  :root{
+    --pink:#f7dfea;
+    --pink2:#f3cddd;
+    --lav:#d9c8ef;
+    --gold:#b79862;
+    --ink:#4d3344;
+    --white:#fffafc;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: "Arial", "Heebo", sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255,255,255,.95) 0 2px, transparent 3px),
+      radial-gradient(circle at 80% 15%, rgba(255,255,255,.85) 0 1.5px, transparent 2.5px),
+      radial-gradient(circle at 70% 70%, rgba(255,255,255,.8) 0 2px, transparent 3px),
+      linear-gradient(145deg,#f6ddea,#ead9f6 52%,#f8e5ee);
+    background-size:55px 55px,70px 70px,90px 90px,auto;
+    padding:18px;
+  }
+  .app{
+    width:min(100%,480px);
+    min-height:calc(100vh - 36px);
+    margin:auto;
+    background:rgba(255,250,252,.78);
+    border:1px solid rgba(183,152,98,.25);
+    border-radius:34px;
+    box-shadow:0 20px 60px rgba(92,57,78,.18);
+    overflow:hidden;
+    position:relative;
+    backdrop-filter:blur(7px);
+  }
+  .app:before,.app:after{
+    content:"✦  ✧  ✦";
+    position:absolute;
+    color:rgba(183,152,98,.45);
+    font-size:22px;
+    letter-spacing:8px;
+    z-index:0;
+  }
+  .app:before{top:115px;left:20px}
+  .app:after{bottom:110px;right:14px}
+  header{
+    text-align:center;
+    padding:28px 24px 20px;
+    background:linear-gradient(180deg,rgba(244,204,224,.9),rgba(255,248,251,.8));
+    border-bottom:1px solid rgba(183,152,98,.22);
+    position:relative;
+    z-index:1;
+  }
+  .crown{font-size:36px;line-height:1}
+  h1{margin:8px 0 4px;color:var(--gold);font-size:30px;font-weight:700}
+  header p{margin:0;font-size:15px;color:#7b6374}
+  .progress-wrap{padding:16px 24px 0;position:relative;z-index:1}
+  .progress{
+    height:7px;background:#f3e7ed;border-radius:50px;overflow:hidden
+  }
+  .bar{
+    height:100%;width:0;background:linear-gradient(90deg,var(--pink2),var(--lav),#d9bc85);
+    transition:.35s ease;border-radius:50px
+  }
+  .step{
+    display:none;
+    padding:28px 24px 34px;
+    min-height:470px;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    position:relative;
+    z-index:1;
+    animation:fade .35s ease;
+  }
+  .step.active{display:flex}
+  @keyframes fade{
+    from{opacity:0;transform:translateY(8px)}
+    to{opacity:1;transform:none}
+  }
+  .bubble{
+    width:100%;
+    padding:30px 22px;
+    background:linear-gradient(145deg,#fdebf4,#f4def1);
+    border-radius:28px;
+    box-shadow:0 12px 30px rgba(99,65,88,.13);
+    text-align:center;
+    margin-bottom:24px;
+    border:1px solid rgba(255,255,255,.8);
+  }
+  .bubble h2{margin:0;font-size:26px;line-height:1.45}
+  .bubble p{font-size:16px;line-height:1.65;margin:10px 0 0}
+  .options{display:grid;gap:12px;width:100%}
+  button.option, .next-btn, .back-btn{
+    border:0;cursor:pointer;font-size:18px;border-radius:18px;padding:15px 16px;
+    transition:.2s ease;
+  }
+  button.option{
+    background:rgba(255,255,255,.88);
+    color:var(--ink);
+    box-shadow:0 6px 18px rgba(96,62,84,.09);
+    border:1px solid rgba(183,152,98,.18);
+  }
+  button.option:hover,button.option:active{
+    transform:translateY(-1px);
+    background:#fff;
+    box-shadow:0 8px 24px rgba(96,62,84,.15);
+  }
+  .field{
+    width:100%;padding:17px 18px;border:1px solid #decbd7;border-radius:18px;
+    font-size:18px;background:#fff;outline:none;text-align:right;color:var(--ink)
+  }
+  .field:focus{border-color:#c6a7b9;box-shadow:0 0 0 4px rgba(226,197,216,.28)}
+  .nav{display:flex;gap:10px;width:100%;margin-top:14px}
+  .next-btn{background:linear-gradient(145deg,#d6b377,#b99055);color:white;flex:1;font-weight:700}
+  .back-btn{background:#f5eaf0;color:#6b5263}
+  .small{font-size:13px;color:#876e7e;margin-top:10px;text-align:center;line-height:1.5}
+  .final-card{
+    width:100%;background:#fff;border-radius:22px;padding:18px;
+    box-shadow:0 8px 25px rgba(96,62,84,.09);margin:4px 0 18px
+  }
+  .summary{font-size:14px;line-height:1.7;color:#6f5868}
+  .success{font-size:44px;margin-bottom:5px}
+  footer{text-align:center;padding:0 20px 22px;color:#9a8291;font-size:12px;position:relative;z-index:1}
+  @media(max-width:390px){
+    h1{font-size:26px}
+    .bubble h2{font-size:23px}
+    .step{padding-inline:18px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="crown">♕</div>
+    <h1>רגע נסיכותי עם ורד</h1>
+    <p>ורד דחבש • מטפלת הוליסטית</p>
+  </header>
+
+  <div class="progress-wrap"><div class="progress"><div class="bar" id="bar"></div></div></div>
+
+  <main>
+    <section class="step active" data-step="0">
+      <div class="bubble">
+        <h2>היי נסיכה, איזה כיף שהגעת 💗<br>מה שמך המלא?</h2>
+      </div>
+      <input class="field" id="fullName" type="text" placeholder="כתבי כאן את שמך המלא..." />
+      <div class="nav"><button class="next-btn" onclick="nextFromName()">ממשיכות ✨</button></div>
+    </section>
+
+    <section class="step" data-step="1">
+      <div class="bubble"><h2>בואי נעצור לרגע.<br>מה מכביד לך על הלב לאחרונה?</h2></div>
+      <div class="options">
+        <button class="option" onclick="choose('burden','ריצוי')">ריצוי</button>
+        <button class="option" onclick="choose('burden','אשמה')">אשמה</button>
+        <button class="option" onclick="choose('burden','עומס')">עומס</button>
+        <button class="option" onclick="choose('burden','עייפות')">עייפות</button>
+        <button class="option" onclick="choose('burden','חרדה')">חרדה</button>
+      </div>
+    </section>
+
+    <section class="step" data-step="2">
+      <div class="bubble"><h2>הבנתי אותך.<br>איפה זה פוגש אותך הכי חזק?</h2></div>
+      <div class="options">
+        <button class="option" onclick="choose('where','בבית')">בבית</button>
+        <button class="option" onclick="choose('where','בעבודה')">בעבודה</button>
+        <button class="option" onclick="choose('where','מול עצמי')">מול עצמי</button>
+      </div>
+    </section>
+
+    <section class="step" data-step="3">
+      <div class="bubble"><h2>איזה משפט הכי יושב לך בראש כשקשה?</h2></div>
+      <div class="options">
+        <button class="option" onclick="choose('inner','אני לא מספיק טובה')">״אני לא מספיק טובה״</button>
+        <button class="option" onclick="choose('inner','אסור לי להתלונן')">״אסור לי להתלונן״</button>
+        <button class="option" onclick="choose('inner','אם לא אני אף אחד לא יעשה את זה')">״אם לא אני אף אחד לא יעשה את זה״</button>
+        <button class="option" onclick="choose('inner','מה יחשבו עלי')">״מה יחשבו עלי״</button>
+      </div>
+    </section>
+
+    <section class="step" data-step="4">
+      <div class="bubble"><h2>כמה זמן את כבר סוחבת את זה לבד?</h2></div>
+      <div class="options">
+        <button class="option" onclick="choose('duration','כמה חודשים')">כמה חודשים</button>
+        <button class="option" onclick="choose('duration','כמה שנים')">כמה שנים</button>
+        <button class="option" onclick="choose('duration','מאז שאני זוכרת את עצמי')">מאז שאני זוכרת את עצמי</button>
+      </div>
+    </section>
+
+    <section class="step" data-step="5">
+      <div class="bubble"><h2>ומה הכי היית רוצה להרגיש במקום?</h2></div>
+      <div class="options">
+        <button class="option" onclick="choose('desired','שקט')">שקט</button>
+        <button class="option" onclick="choose('desired','קלילות')">קלילות</button>
+        <button class="option" onclick="choose('desired','שיראו אותי')">שיראו אותי</button>
+        <button class="option" onclick="choose('desired','חופש לבחור בעצמי')">חופש לבחור בעצמי</button>
+      </div>
+    </section>
+
+    <section class="step" data-step="6">
+      <div class="bubble">
+        <h2>תודה ששיתפת אותי, נסיכה 💕</h2>
+        <p>אני עוברת על כל מה שכתבת ומכינה לך הודעה נסיכותית עם מה שהלב שלך מבקש.</p>
+      </div>
+      <div class="final-card">
+        <div class="summary" id="summary"></div>
+      </div>
+      <input class="field" id="phone" inputmode="tel" type="tel" placeholder="לאיזה מספר לשלוח לך בוואטסאפ?" />
+      <div class="nav"><button class="next-btn" onclick="finish()">שלחי לי ✨</button></div>
+      <div class="small">בלחיצה על הכפתור התשובות יישלחו ישירות למייל של ורד. אין צורך לפתוח מייל או וואטסאפ.</div>
+    </section>
+
+    <section class="step" data-step="7">
+      <div class="success">💗</div>
+      <div class="bubble">
+        <h2>קיבלתי, נסיכה.</h2>
+        <p>תודה על הכנות ועל הרגע שנתת לעצמך.<br>התשובות נשלחו לורד 💗</p>
+      </div>
+      <button class="option" onclick="restart()">להתחיל מחדש</button>
+    </section>
+  </main>
+
+  <footer>ורד דחבש • רגע קטן של הקשבה פנימה</footer>
+</div>
+
+<script>
+const answers = {};
+let current = 0;
+const steps = [...document.querySelectorAll('.step')];
+const bar = document.getElementById('bar');
+
+function showStep(n){
+  steps.forEach((s,i)=>s.classList.toggle('active', i===n));
+  current=n;
+  const visibleProgress = Math.min(n,6)/6*100;
+  bar.style.width = visibleProgress + '%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function nextFromName(){
+  const name=document.getElementById('fullName').value.trim();
+  if(!name){alert('כתבי לי קודם את שמך, נסיכה 💗');return;}
+  answers.name=name;
+  showStep(1);
+}
+
+function choose(key,value){
+  answers[key]=value;
+  if(current<5) showStep(current+1);
+  else {
+    renderSummary();
+    showStep(6);
+  }
+}
+
+function renderSummary(){
+  const el=document.getElementById('summary');
+  el.innerHTML = `
+    <strong>${answers.name || ''}</strong>, זה מה ששיתפת עד עכשיו:<br>
+    מה מכביד: ${answers.burden || '-'}<br>
+    איפה זה פוגש: ${answers.where || '-'}<br>
+    המשפט הפנימי: ${answers.inner || '-'}<br>
+    כמה זמן: ${answers.duration || '-'}<br>
+    מה היית רוצה להרגיש: ${answers.desired || '-'}
+  `;
+}
+
+async function finish(){
+  const phone=document.getElementById('phone').value.trim();
+  if(!phone){alert('כתבי מספר וואטסאפ כדי שאדע לאן לשלוח 💗');return;}
+  answers.phone=phone;
+
+  const btn = document.querySelector('[data-step="6"] .next-btn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'שולחת...';
+
+  const data = new FormData();
+  data.append('שם מלא', answers.name || '-');
+  data.append('מה מכביד', answers.burden || '-');
+  data.append('איפה זה פוגש', answers.where || '-');
+  data.append('המשפט הפנימי', answers.inner || '-');
+  data.append('כמה זמן', answers.duration || '-');
+  data.append('מה הייתי רוצה להרגיש', answers.desired || '-');
+  data.append('טלפון', answers.phone || '-');
+  data.append('_subject', 'שאלון חדש – רגע נסיכותי עם ורד');
+  data.append('_template', 'table');
+
+  try {
+    const response = await fetch('https://formsubmit.co/ajax/veredamazon@gmail.com', {
+      method: 'POST',
+      body: data,
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (!response.ok) throw new Error('Submission failed');
+    showStep(7);
+  } catch (e) {
+    alert('לא הצלחתי לשלוח כרגע. בדקי שיש חיבור לאינטרנט ונסי שוב.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+function restart(){
+  Object.keys(answers).forEach(k=>delete answers[k]);
+  document.getElementById('fullName').value='';
+  document.getElementById('phone').value='';
+  showStep(0);
+}
+showStep(0);
+</script>
+</body>
+</html>
